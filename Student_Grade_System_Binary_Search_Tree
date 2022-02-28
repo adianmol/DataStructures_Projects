@@ -1,0 +1,505 @@
+//Java
+import java.util.Scanner;
+
+public class Exercise_3_BST_Student {
+	public static void main(String[] args) {
+		Scanner in = new Scanner(System.in);
+		System.out.println("Welcome to a BST of Students:");
+		
+		//CREATE AN ARRAY FROM THE USER'S INPUTS 
+		//Assuming that the Array of Student details are initialized as an array before and then when option 1 is chosen the program transforms that array
+		//into a bst by the grade values
+		int size_array = 10;
+		Student_bst [] array_user = new Student_bst [size_array];
+		for(int i = 0; i< size_array; i++) {
+			System.out.println("Enter the Name of the Student: ");
+			String n_user =in.next();
+			System.out.println("Enter the Grade of that Student: ");
+			double g_user= in.nextDouble();
+			array_user[i]= new Student_bst(n_user, g_user);
+		}
+		System.out.println("An array of Student Details is created from the user's inputs.");
+		
+		//ONCE DONE, DO THE OPTIONS
+		Tree_bst theTree= new Tree_bst(); //initialize a tree variable beforehand so that other options can work 
+		System.out.println();
+		System.out.println("To correctly use the other options, make sure that you have chosed option first.");
+		menu();
+		int user = in.nextInt();
+		
+		while (user != 7) {
+			switch (user) {
+			case 1:// create a bst from a given array
+				create_bst( array_user, theTree);
+				break;
+				
+			case 2:	//insert a new student 
+				//get user input
+				System.out.println("Enter the Name of the Student: ");
+				String name_user =in.next();
+				System.out.println("Enter the Grade of that Student: ");
+				double grade_user= in.nextDouble();
+				//insert
+				theTree.insert(name_user, grade_user);
+				System.out.println("Inserted!");
+				break;
+			
+				
+			case 3: //delete student by name 
+				System.out.println("Assumption is that the names and the grades of the students are unique.");
+				System.out.println("Enter the name of the student you want to delete: ");
+				String key_name_del =in.next();
+				Boolean del = theTree.delete(key_name_del);
+				if(del) {
+					System.out.println("Deleted!");
+				}
+				else {
+					System.out.println("Not Deleted.");
+				}
+				break;
+				
+			case 4:// search student by name and display their grade
+				System.out.println("Enter the name of the student you want to find: ");
+				String key_name = in.next();
+				theTree.searchStudname(key_name);
+				break;
+				
+			case 5://Display Grades of all students Sorted
+				theTree.displayGradesSorted();
+				break;
+				
+			case 6://Display the Students with a grade above user input
+				System.out.println("Enter the Minimum Grade: ");
+				double min_grade = in.nextDouble();
+				theTree.GradesAbove(min_grade);
+				break;
+			case 8:
+				System.out.println("Since the values of grades are taken as double, it is possible that the exact decimal places may differ from the true value.");
+				theTree.displayTreeLevels();
+				break;
+			}
+			menu();
+			user = in.nextInt();
+		}
+		System.out.println("Thank you for accessing the BST of Students! \n Have a great day!");
+		in.close();
+	}// MAIN
+		// ------------------------------------------------------------------------------------------------------------------------------------------
+	//CREATE A BST USING A GIVEN ARRAY
+	//As specified in the question it is assumed that there are only 10 elements specified in the user given array
+	public static void create_bst(Student_bst [] array_user,Tree_bst theTree ) {
+		for (int i = 0; i < array_user.length; i++) {
+			theTree.insert(array_user[i].getName(), array_user[i].getGrade());
+		}
+		System.out.println("BST Created");
+	}
+
+	
+	// MENU
+	public static void menu() {
+		System.out.println("\nChoose one of the options: ");
+		System.out.println("\t1. Create a BST \n" + "\t2. Insert a new student \n" + "\t3. Delete a Student \n"
+				+ "\t4. Search for a Student and display their grades\n" + "\t5. Display students' grades sorted\n"
+				+ "\t6. Display ALL student grades above a certain value entered by a user\n" + "\t7. Exit\n"+"\t8. Display Tree\n");
+	}//MENU
+
+}
+// ------------------------------------------------------------------------------------------------------------------------------------------
+//TREE FOR QUESTION 3
+////////////////////////////////////////////////////////////////
+import java.io.*;
+import java.util.*; // for Stack class
+////////////////////////////////////////////////////////////////
+//NODE OF BINARY TREE 
+
+class Node {
+	public Student_bst stud; // data item (student object that stores the name and the grade)
+	public Node leftChild; // this node's left child
+	public Node rightChild; // this node's right child
+	
+} // end class Node
+////////////////////////////////////////////////////////////////
+
+class Tree_bst {
+	private Node root; // first node of tree
+
+// -------------------------------------------------------------
+	public Tree_bst() // constructor
+	{
+		root = null;
+	} // no nodes in tree yet
+// -------------------------------------------------------------
+//getter 
+	public Node getRoot() {
+		return root;
+	}
+	public void setRoot(Node root) {
+		this.root = root;
+	}
+// -------------------------------------------------------------
+	public void insert(String n, double g) // this method inserts a node of (n as name and g as grade) into the tree.
+											// (We are consider a
+											// BINARY SEARCH TREE by grade)
+	{
+		Node newNode = new Node(); // creating a new node for the tree
+		newNode.stud = new Student_bst(n, g);
+
+		if (root == null) // no node in root
+			root = newNode;
+		else // root occupied
+		{
+			Node current = root; // start at root
+			Node parent;
+			while (true) { // (exits internally)
+				parent = current;
+				if (g < current.stud.getGrade()) // go left?
+				{
+					current = current.leftChild;
+					if (current == null) // if end of the line,
+					{ // insert on left
+						parent.leftChild = newNode;
+						return;
+					}
+				} // end if go left
+				else // or go right?
+				{
+					current = current.rightChild;
+					if (current == null) // if end of the line
+					{ // insert on right
+						parent.rightChild = newNode;
+						return;
+					}
+				} // end else go right
+			} // end while
+		} // end else not root
+
+	} // end insert()
+		// -------------------------------------------------------------
+	public Node findGrade(int key) { // find node with given key
+		// (assumes non-empty tree)
+		Node current = root; // beginning at the root of the tree
+		while (current.stud.getGrade() != key) // loop in the case that there is no match
+		{
+			if (key < current.stud.getGrade()) { // if the key is less than the value, then go left
+				current = current.leftChild;
+			} else { // if the key is greater than the value, then go right
+				current = current.rightChild;
+			}
+			if (current == null) { // if no child,
+				return null;
+			} // didn't find it
+		}
+		return current; // found it
+
+		// found it
+	} // end find()
+//////////////////////////////////////////////////////
+	public void traverse(int traverseType) // this method is full implemented see below
+	{
+		switch (traverseType) {
+		case 1:
+			System.out.print("\nPreorder traversal: ");
+			preOrder(root);
+			break;
+		case 2:
+			System.out.print("\nInorder traversal:  ");
+			inOrder(root);
+			break;
+		case 3:
+			System.out.print("\nPostorder traversal: ");
+			postOrder(root);
+			break;
+		}
+		System.out.println();
+	}
+// -------------------------------------------------------------
+	private void preOrder(Node localRoot) { // implement preOrder traversal
+
+		if (localRoot != null) {
+			System.out.print("Name- " + localRoot.stud.getName() + "Grade- " + localRoot.stud.getGrade());
+			preOrder(localRoot.leftChild);
+			preOrder(localRoot.rightChild);
+		}
+	}
+// -------------------------------------------------------------
+	private void inOrder(Node localRoot) // implement in Order traversal
+	{
+		if (localRoot != null) {
+			inOrder(localRoot.leftChild);
+			System.out.print("{Name- " + localRoot.stud.getName() + " Grade- " + localRoot.stud.getGrade()+ "}");
+			inOrder(localRoot.rightChild);
+		}
+	}
+// -------------------------------------------------------------
+	private void postOrder(Node localRoot) // implement postOrder traversal
+	{
+		if (localRoot != null) {
+			postOrder(localRoot.leftChild);
+			postOrder(localRoot.rightChild);
+			System.out.print("Name- " + localRoot.stud.getName() + "Grade- " + localRoot.stud.getGrade());
+		}
+	}
+// -------------------------------------------------------------
+	//DELETE A STUDENT FROM A TREE OF UNIQUE NAMES AND UNIQUE GRADES
+ 	public boolean delete(String key) // delete node with given key (key) (if there are multiple nodes match key
+										// with key you have to delete all of them.
+ 	//APPROACH : given the assumption is that the names and the grade of the person is unique, finding the node with the same name also gives access 
+ 	//to the grades of that student. Since that grade is unique, deleting the node by traversing to find that node based on that grade would also delete the student
+	{ // (assumes non-empty list)
+
+ 		if(root==null) {
+ 			System.out.println("The tree is empty!");
+ 			return false;
+ 		}
+ 		else {
+ 			double key_grade = inOrder_delete( root,  key); 
+ 			System.out.println(key_grade);
+ 			if(key_grade==-1) {
+ 				System.out.println("The value you want to delete is not in this tree.");
+ 				return false;
+ 			}
+ 			else {
+ 				Node current = root;
+ 				Node parent = root;
+ 				boolean isLeftChild = true;
+ 				while (current.stud.getGrade() != key_grade) // search for node
+ 				{
+ 					parent = current;
+ 					if (key_grade < current.stud.getGrade()) // go left?
+ 					{
+ 						isLeftChild = true;
+ 						current = current.leftChild;
+ 					} else // or go right?
+ 					{
+ 						isLeftChild = false;
+ 						current = current.rightChild;
+ 					}
+ 					if (current == null) // end of the line,
+ 						return false; // didn't find it
+ 				} // end while
+ 					// found node to delete
+ 				// CASE-> if no children, simply delete it
+ 				if (current.leftChild == null && current.rightChild == null) {
+ 					if (current == root) // if root,
+ 						root = null; // tree is empty
+ 					else if (isLeftChild)
+ 						parent.leftChild = null; // disconnect
+ 					else // from parent
+ 						parent.rightChild = null;
+ 				}
+ 				// CASE 1 child -> if no right child, replace with left subtree
+ 				else if (current.rightChild == null)
+ 					if (current == root)
+ 						root = current.leftChild;
+ 					else if (isLeftChild)
+ 						parent.leftChild = current.leftChild;
+ 					else
+ 						parent.rightChild = current.leftChild;
+ 				// CASE 1 child -> if no left child, replace with right subtree
+ 				else if (current.leftChild == null)
+ 					if (current == root)
+ 						root = current.rightChild;
+ 					else if (isLeftChild)
+ 						parent.leftChild = current.rightChild;
+ 					else
+ 						parent.rightChild = current.rightChild;
+ 				else
+ 				// Case 2 child two children, so replace with inorder successor
+ 				{
+ 					// get successor of node to delete (current)
+ 					Node successor = getSuccessor(current);
+
+ 					// connect parent of current to successor instead
+ 					if (current == root)
+ 						root = successor;
+ 					else if (isLeftChild)
+ 						parent.leftChild = successor;
+ 					else
+ 						parent.rightChild = successor;
+
+ 					// connect successor to current's left child
+ 					successor.leftChild = current.leftChild;
+ 				} // end else two children
+ 					// (successor cannot have a left child)
+ 				return true;
+ 			}
+ 		}		
+	} // end delete()
+// -------------------------------------------------------------
+	// returns node with next-highest value after delNode
+	// goes to right child, then right child's left descendents
+
+	private Node getSuccessor(Node delNode) {
+		Node successorParent = delNode;
+		Node successor = delNode;
+		Node current = delNode.rightChild; // go to right child
+		while (current != null) // until no more
+		{ // left children,
+			successorParent = successor;
+			successor = current;
+			current = current.leftChild; // go to left child
+		}
+		// if successor not
+		if (successor != delNode.rightChild) // right child,
+		{ // make connections
+			successorParent.leftChild = successor.rightChild;
+			successor.rightChild = delNode.rightChild;
+		}
+		return successor;
+	}
+// ------------------------------------------------------------	
+	//return grade if -1--> not found
+	private double inOrder_delete(Node localRoot, String key) // implement in Order traversal
+	{
+		if (localRoot != null) {
+			double left_return = inOrder_delete(localRoot.leftChild, key);
+			if(left_return>=0) {
+				return left_return;
+			}
+			//System.out.print("Name- " + localRoot.stud.getName() + "Grade- " + localRoot.stud.getGrade());
+			if (localRoot.stud.getName().equalsIgnoreCase(key)) {
+				return localRoot.stud.getGrade();
+			}
+			double right_return =inOrder_delete(localRoot.rightChild, key);
+			if(right_return>=0) {
+				return right_return;
+			}	
+		}
+		return -1;
+	}
+// -------------------------------------------------------------
+	public void displayTreeLevels() // this method will display the nodes at each level in the tree. (The method
+									// should print the nodes (id) as: Level1:.... - Level2:...
+	{
+		Stack globalStack = new Stack(); // creating a global stack //print the nodes
+		globalStack.push(root);
+		int nBlanks = 32; // number of banks
+		boolean isRowEmpty = false;
+		System.out.println("......................................................");// header
+		int i = 0;
+		while (isRowEmpty == false) { // traces if the entire tree has been printed
+			Stack localStack = new Stack(); // track of next level nodes
+			isRowEmpty = true;
+			System.out.print("Level is--> " + i + "\t");
+			for (int j = 0; j < nBlanks; j++)
+				System.out.print(' ');
+
+			while (globalStack.isEmpty() == false) // inner loop for local --> next level
+			{
+				Node temp = (Node) globalStack.pop();
+				if (temp != null) {
+					System.out.print(temp.stud.getGrade());
+					localStack.push(temp.leftChild);
+					localStack.push(temp.rightChild);
+					// checking if the node has any children
+					// case: has children
+					if (temp.leftChild != null || temp.rightChild != null) {
+						isRowEmpty = false;
+					}
+				} else {
+					// case node does not have any children then print dashes
+					System.out.print("--");
+					localStack.push(null);
+					localStack.push(null);
+				}
+				for (int j = 0; j < nBlanks * 2 - 2; j++)
+					System.out.print(' ');
+			} // end while globalStack not empty
+
+			System.out.println();
+			nBlanks /= 2;
+			while (localStack.isEmpty() == false)
+				globalStack.push(localStack.pop());
+			i++;
+		} // end while isRowEmpty is false
+		System.out.println(
+
+				"......................................................");
+		// level i in global
+		// level i+1 in local
+		// once global is printed then we transfer local(i+2) --> global (i+1)
+		// global stack --> everything printed
+		// local stack --> tracks the children of the global stack
+		// once all global stack printed all the things from the local are transferred
+		// to the global stack for the next level
+		// wherever no children --> print null else relative element
+	} // end displayTreeLevels()
+// -------------------------------------------------------------
+	//SEARCHING A STUDENT 
+	public void searchStudname(String key) {
+ 		if(root==null) {
+ 			System.out.println("The tree is empty!");
+ 		}
+ 		else {
+ 			double key_grade = inOrder_delete( root,  key); 
+ 			if(key_grade<0) {
+ 				System.out.println("The Student is not in this Tree.");
+ 			}
+ 			else {
+ 				System.out.println(key_grade);
+ 			}
+ 		}	
+	}
+	// -------------------------------------------------------------
+	//return 0--> not found if 1--> found 	
+// -------------------------------------------------------------
+	//DISPLAY GRADES SORTED
+	public void displayGradesSorted() {
+		if(root==null) {
+			System.out.println("The Tree is empty!");
+		}
+		else {
+			inOrder(root);
+		}
+	}
+// -------------------------------------------------------------
+	//DISPLAY GRADES ABOVE A USER GIVEN VALUE
+	public void GradesAbove(double key) {
+		if(root==null) {
+			System.out.println("The Tree is empty!");
+		}
+		else {
+			System.out.println("The function is an exclusive one i.e. it consideres the value equal to the key as not included in the group of grades above"
+					+ "\nFor instance, if the user gives 90, the grades greater than 90 are printed and if there is an element with grade as 90, it is not printed.");
+			inOrder_above(root, key);
+		}
+	}
+	private void inOrder_above(Node localRoot,double k) // implement in Order traversal
+	{
+		if (localRoot != null) {
+			inOrder_above(localRoot.leftChild,k);
+			if(localRoot.stud.getGrade()>k) {
+				System.out.print("{Name- " + localRoot.stud.getName() + " Grade- " + localRoot.stud.getGrade()+ "}");
+			}
+			
+			inOrder_above(localRoot.rightChild,k);
+		}
+	}
+} // end class Tree
+////////////////////////////////////////////////////////////////
+//STUDENT OBJECT
+public class Student_bst {
+//member variables
+	private double grade;
+	private String name;
+//constructor
+	public Student_bst() {  
+	}
+	public Student_bst(String n, double g) {
+		name = n;
+		grade = g;
+	}
+//getters and setters
+	public double getGrade() {
+		return grade;
+	}
+	public void setGrade(double grade) {
+		this.grade = grade;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+}
